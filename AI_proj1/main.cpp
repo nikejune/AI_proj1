@@ -30,7 +30,7 @@ int Go_Left(int &R, int &C);
 int Go_Right(int &R, int &C);
 int (*Go[4])(int&, int&)= { Go_Up, Go_Left, Go_Down, Go_Right};
 void WHereIsStartPoint(int& R, int &C);
-void IDS (int R, int C);
+pair<int, int> IDS (int R, int C);
 
 stack<pair<int, int> > trace;
 
@@ -38,9 +38,11 @@ int main(int argc, const char * argv[]) {
   
     int Start_R;
     int STart_C;
+    pair<int, int> tempPair;
     // 파일 입력
   //  ifstream in(argv[1]);
     ifstream in("input_ex1.txt");
+    ofstream off("output_ex1.txt");
     
     if (in.is_open()) {
         in >> ROW;
@@ -62,10 +64,11 @@ int main(int argc, const char * argv[]) {
         cout << "파일을 찾을 수 없습니다!" << endl;
         return -1;
     }
+    in.close();
     
     //시작점 구하기
     WHereIsStartPoint(Start_R, STart_C);
-    IDS(Start_R, STart_C);
+    tempPair = IDS(Start_R, STart_C);
     
     while(!trace.empty())
     {
@@ -73,14 +76,17 @@ int main(int argc, const char * argv[]) {
         MATRIX[trace.top().first][trace.top().second] = 5;
         trace.pop();
     }
-    MATRIX[Start_R][STart_C] = 3;
     
     for (int i = 0; i < ROW; ++i) {
         for (int j = 0; j < COL; ++j) {
-             cout <<MATRIX[i][j] <<" ";
+             off <<MATRIX[i][j] <<" ";
         }
-        cout <<endl;
+        off <<endl;
     }
+    off << "---" << endl;
+    off << "length : " << tempPair.first <<endl;
+     off << "time : " << tempPair.second <<endl;
+    off.close();
     return 0;
 }
 
@@ -141,18 +147,18 @@ int Go_Right(int &R, int &C)
         return 1;
 }
 
-void IDS (int R, int C)
+pair<int, int> IDS (int R, int C)
 {
     int cur_R, cur_C, cur_dir, cur_limit;
     int tmp_R, tmp_C;
     int limit = 0;
-    
+    int time =0;
     int ex_limit;
     
     stack<stackElement> S;
     stackElement tmpStackElement;
 
-    trace.push(make_pair(cur_R, cur_C));
+    
     while(true)
     {
         limit++;
@@ -165,11 +171,55 @@ void IDS (int R, int C)
         
         
         //시작점 집어넣기
-        tmpStackElement ={cur_R, cur_C, 0, limit};
-        S.push(tmpStackElement);
-        
-      
-        do{
+//        tmpStackElement ={cur_R, cur_C, 0, limit};
+//      S.push(tmpStackElement);
+        for (int i = 0; i < 4 ; ++i) {
+            tmp_R = cur_R;
+            tmp_C = cur_C;
+            if(Go[i](tmp_R,tmp_C)){
+                tmpStackElement = {tmp_R, tmp_C, i, cur_limit-1};
+                S.push(tmpStackElement);
+                
+            }
+        }
+
+        while(!S.empty()){
+         
+            
+            //pop 과정
+            cur_R = S.top().row;
+            cur_C = S.top().col;
+            cur_dir = S.top().dir;
+            cur_limit = S.top().limit;
+            
+            // 길이 막혀서 돌아오게 되었을 떄
+            // (전단계의 limit값과 현재 limit값의 차이가 1이 아니라면)
+            if(ex_limit - cur_limit != 1)
+            {
+                for(int i =0; i<= cur_limit - ex_limit ; i++){
+                    cout << "pop" << trace.top().first <<"," <<trace.top().second << endl;
+                    trace.pop();
+                    
+                }
+            }
+            ex_limit = cur_limit;
+            S.pop();
+            
+            //도착확인
+            if(MATRIX[cur_R][cur_C] == 4)
+            {
+                cout << "find !! " << cur_R << "," << cur_C <<endl;
+                return make_pair(trace.size() , time);
+            }
+            
+            // 자취 남기기
+            trace.push(make_pair(cur_R, cur_C));
+            cout << "push" << trace.top().first <<"," <<trace.top().second << endl;
+            
+            //시도(time)증가
+            time++;
+            
+            // 스텍에 가능한 이동 집어넣기
             if(cur_limit != 0){
                 for (int i = 0; i < 4 ; ++i) {
                     if(cur_dir  == (i +2 )%4)
@@ -184,41 +234,15 @@ void IDS (int R, int C)
                 }
             }
                 
-        
-            cur_R = S.top().row;
-            cur_C = S.top().col;
-            cur_dir = S.top().dir;
-            cur_limit = S.top().limit;
-            if(ex_limit - cur_limit != 1)
-            {
-                for(int i =0; i<= cur_limit - ex_limit ; i++){
-                    cout << "pop" << trace.top().first <<"," <<trace.top().second << endl;
-                    trace.pop();
-                    
-                }
-            }
-            ex_limit = cur_limit;
-            
-            trace.push(make_pair(cur_R, cur_C));
-            cout << "push" << trace.top().first <<"," <<trace.top().second << endl;
-
-            if(MATRIX[cur_R][cur_C] == 4)
-            {
-                cout << "find !! " << cur_R << "," << cur_C <<endl;
-                return;
-            }
-            else if (MATRIX[cur_R][cur_C] == 2)
-            {
-                cout << cur_R << "," << cur_C <<endl;
-                
-            }
-
             
 
-            S.pop();
-
-        }while(!S.empty());
-        
+        }
+     
+        while(!trace.empty()){
+            cout << "pop" << trace.top().first <<"," <<trace.top().second << endl;
+            trace.pop();
+            
+        }
         
     }
     
