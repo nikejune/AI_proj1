@@ -82,7 +82,7 @@ int main(int argc, const char * argv[]) {
     vector<pair<int, int> > finishPoints;
     // 파일 입력
   //  ifstream in(argv[1]);
-    ifstream in("input_ex1.txt");
+    ifstream in("input_50.txt");
     ofstream off("output_ex.txt");
     
     if (in.is_open()) {
@@ -123,8 +123,8 @@ int main(int argc, const char * argv[]) {
                 {
                     int count = 0;
                     HU_MATRIX[i][j] = 0;
-                    for (int i2 = -3; i2 <= 3; ++i2)
-                        for (int j2 = -3; j2 <= 3; ++j2)
+                    for (int i2 = -2; i2 <= 2; ++i2)
+                        for (int j2 = -2; j2 <= 2; ++j2)
                         {
                             if(i+i2 < 0 || i+i2 >= ROW || j+j2 <0 || j+j2 >=COL)
                                 continue;
@@ -176,7 +176,7 @@ int main(int argc, const char * argv[]) {
     
     
     
-   /*
+   
     
     for (int i = 0; i < ROW; ++i) {
         for (int j = 0; j < COL; ++j) {
@@ -184,7 +184,7 @@ int main(int argc, const char * argv[]) {
         }
         cout << endl;
     }
-    */
+    
     
  
     
@@ -224,8 +224,8 @@ int main(int argc, const char * argv[]) {
     Finish_C = Start_C;
     
     //미로찾기
- //   tempPair = IDS(Finish_R, Finish_C);
- //   tempPair = BFS(Finish_R, Finish_C);
+ //tempPair = IDS(Finish_R, Finish_C);
+ //  tempPair = BFS(Finish_R, Finish_C);
     tempPair = ASTAR(Finish_R, Finish_C);
     
    
@@ -292,7 +292,7 @@ int Go_Up(int &R, int &C)
         return 0;
     R--;
     if(visits[R][C])
-        return 0;
+        return -1;
     
     if(MATRIX[R][C] != 2 && MATRIX[R][C] != 4)
         return 0;
@@ -305,7 +305,7 @@ int Go_Down(int &R, int &C)
         return 0;
     R++;
     if(visits[R][C])
-        return 0;
+        return -1;
     
     if(MATRIX[R][C] != 2 && MATRIX[R][C] != 4)
         return 0;
@@ -319,7 +319,7 @@ int Go_Left(int &R, int &C)
     C--;
     
     if(visits[R][C])
-        return 0;
+        return -1;
     
     if(MATRIX[R][C] != 2 && MATRIX[R][C] != 4)
         return 0;
@@ -333,7 +333,7 @@ int Go_Right(int &R, int &C)
     C++;
     
     if(visits[R][C])
-        return 0;
+        return -1;
     
     if(MATRIX[R][C] != 2 && MATRIX[R][C] != 4)
         return 0;
@@ -357,62 +357,40 @@ pair<int, int> IDS (int& R, int& C)
     {
         limit++;
         cur_limit = limit;
-        ex_limit = cur_limit;
         cout << limit << "'s trial"<< endl;
         cur_R = R;
         cur_C = C;
         cur_dir = -1;
         
-        
         //시작점 집어넣기
-//        tmpStackElement ={cur_R, cur_C, 0, limit};
-//      S.push(tmpStackElement);
         for (int i = 0; i < 4 ; ++i) {
             tmp_R = cur_R;
             tmp_C = cur_C;
             if(Go[i](tmp_R,tmp_C)){
                 tmpStackElement = {tmp_R, tmp_C, i, cur_limit-1};
                 S.push(tmpStackElement);
-                 trace_MATRIX[tmp_R][tmp_C] = make_pair(R,C);
-                
+                trace_MATRIX[tmp_R][tmp_C] = make_pair(R,C);
             }
         }
 
         while(!S.empty()){
-         
-            
             //pop 과정
             cur_R = S.top().row;
             cur_C = S.top().col;
             cur_dir = S.top().dir;
             cur_limit = S.top().limit;
-    /*
-            // 길이 막혀서 돌아오게 되었을 떄
-            // (전단계의 limit값과 현재 limit값의 차이가 1이 아니라면)
-            if(ex_limit - cur_limit != 1)
-            {
-                for(int i =0; i<= cur_limit - ex_limit ; i++){
-                    cout << "pop" << trace.top().first <<"," <<trace.top().second << endl;
-                    trace.pop();
-                    
-                }
-            }
-            ex_limit = cur_limit;*/
+            visits[cur_R][cur_C] = cur_limit;
             S.pop();
             
             //도착확인
             if(MATRIX[cur_R][cur_C] == 4)
             {
-                R =cur_R;
+                R = cur_R;
                 C = cur_C;
                 cout << "find !! " << cur_R << "," << cur_C <<endl;
                 return make_pair(trace.size() , time);
             }
-     /*
-            // 자취 남기기
-            trace.push(make_pair(cur_R, cur_C));
-            cout << "push" << trace.top().first <<"," <<trace.top().second << endl;
-       */
+   
             //시도(time)증가
             time++;
             
@@ -423,27 +401,16 @@ pair<int, int> IDS (int& R, int& C)
                         continue;
                     tmp_R = cur_R;
                     tmp_C = cur_C;
-                    if(Go[i](tmp_R,tmp_C)){
+                    int gogo = Go[i](tmp_R,tmp_C);
+                    if(gogo == 1 || (gogo == -1 && cur_limit > visits[tmp_R][tmp_C])){
                         tmpStackElement = {tmp_R, tmp_C, i, cur_limit-1};
                         S.push(tmpStackElement);
                         trace_MATRIX[tmp_R][tmp_C] = make_pair(cur_R,cur_C);
-                        
                     }
                 }
             }
-                
-            
-
         }
-  /*
-        while(!trace.empty()){
-            cout << "pop" << trace.top().first <<"," <<trace.top().second << endl;
-            trace.pop();
-            
-        }
-    */
     }
-    
 }
 
 pair<int, int> BFS (int &R, int &C)
@@ -461,7 +428,7 @@ pair<int, int> BFS (int &R, int &C)
   for (int i = 0; i < 4 ; ++i) {
         tmp_R = R;
         tmp_C = C;
-        if(Go[i](tmp_R,tmp_C)){
+        if(Go[i](tmp_R,tmp_C) == 1){
 
             tmp_pqElement = {tmp_R, tmp_C, i, HU_MATRIX[tmp_R][tmp_C]};
             PQ.push(tmp_pqElement);
@@ -503,7 +470,7 @@ pair<int, int> BFS (int &R, int &C)
                 continue;
             tmp_R = cur_R;
             tmp_C = cur_C;
-            if(Go[i](tmp_R,tmp_C)){
+            if(Go[i](tmp_R,tmp_C) == 1){
                 tmp_pqElement = {tmp_R, tmp_C, i, HU_MATRIX[tmp_R][tmp_C]};
                 PQ.push(tmp_pqElement);
                 trace_MATRIX[tmp_R][tmp_C] = make_pair(cur_R,cur_C);
@@ -530,7 +497,7 @@ pair<int, int> ASTAR (int &R, int &C)
     for (int i = 0; i < 4 ; ++i) {
         tmp_R = R;
         tmp_C = C;
-        if(Go[i](tmp_R,tmp_C)){
+        if(Go[i](tmp_R,tmp_C) == 1){
             
             tmp_pqElement = {tmp_R, tmp_C, i, A_MATRIX[tmp_R][tmp_C] + HU_MATRIX[tmp_R][tmp_C]};
             PQ.push(tmp_pqElement);
@@ -572,8 +539,8 @@ pair<int, int> ASTAR (int &R, int &C)
                 continue;
             tmp_R = cur_R;
             tmp_C = cur_C;
-            if(Go[i](tmp_R,tmp_C)){
-                tmp_pqElement = {tmp_R, tmp_C, i, A_MATRIX[tmp_R][tmp_C] + HU_MATRIX[tmp_R][tmp_C]};
+            if(Go[i](tmp_R,tmp_C) == 1){
+                tmp_pqElement = {tmp_R, tmp_C, i, A_MATRIX[tmp_R][tmp_C] + HU_MATRIX[tmp_R][tmp_C] /10};
                 PQ.push(tmp_pqElement);
                 trace_MATRIX[tmp_R][tmp_C] = make_pair(cur_R,cur_C);
             }
